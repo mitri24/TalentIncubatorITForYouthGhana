@@ -33,6 +33,14 @@ package "incubator-backend" as root FOLDER_COLOR {
     }
     
     package "modules" as modules_folder FOLDER_COLOR {
+      package "shared" as shared_folder FOLDER_COLOR {
+        file "base.model.js" as shared_model FILE_COLOR
+        file "base.controller.js" as shared_controller FILE_COLOR
+        file "base.repository.js" as shared_repository FILE_COLOR
+        file "base.service.js" as shared_service FILE_COLOR
+        file "base.validation.js" as shared_validation FILE_COLOR
+      }
+
       package "auth" as auth_folder FOLDER_COLOR {
         file "auth.routes.js" as auth_routes FILE_COLOR
         file "auth.controller.js" as auth_controller FILE_COLOR
