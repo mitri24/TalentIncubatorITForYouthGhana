@@ -65,6 +65,16 @@ class CompanyRepository extends BaseRepository {
     return await this.restore({ user: userId }, options);
   }
 
+   /**
+   * Force delete profile
+   * @param {string} userId
+   * @param {Object} [options]
+   * @returns {Promise<Object|null>}
+   */
+  async forceDeleteByUserId(userId, options = {}) {
+    return await this.forceDelete({ user: userId }, options);
+  } 
+
   /**
    * Get active companies (for job posting)
    * @param {Object} [filters]

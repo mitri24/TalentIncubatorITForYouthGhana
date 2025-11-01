@@ -55,6 +55,16 @@ class AdminRepository extends BaseRepository {
     return await this.delete({ user: userId }, options);
   }
 
+   /**
+   * Force delete profile
+   * @param {string} userId
+   * @param {Object} [options]
+   * @returns {Promise<Object|null>}
+   */
+  async forceDeleteByUserId(userId, options = {}) {
+    return await this.forceDelete({ user: userId }, options);
+  } 
+
   /**
    * Restore admin profile
    * @param {string} userId

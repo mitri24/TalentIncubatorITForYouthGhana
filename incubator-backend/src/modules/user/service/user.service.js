@@ -49,7 +49,11 @@ class UserService extends BaseService {
         }
 
         // Populate profile based on role
-        const profile = await this._getProfileByRole(user.role, user._id, options);
+        const profile = await this._getProfileByRole(
+          user.role,
+          user._id,
+          options
+        );
 
         const result = {
           user: user.deserialize({ exclude: ["password_hash"] }),
@@ -60,7 +64,7 @@ class UserService extends BaseService {
         return this.success(result);
       } catch (error) {
         return this.error(error, "Failed to fetch profile");
-            }
+      }
     });
   }
 
@@ -72,36 +76,54 @@ class UserService extends BaseService {
    * @returns {Promise<Object>} - Updated profile
    */
   async updateMyProfile(userId, updates, options = {}) {
-    return this.runInContext({ action: "updateMyProfile", userId }, async () => {
-      try {
-        this.log("updateMyProfile.start", { userId, updatesKeys: Object.keys(updates) });
+    return this.runInContext(
+      { action: "updateMyProfile", userId },
+      async () => {
+        try {
+          this.log("updateMyProfile.start", {
+            userId,
+            updatesKeys: Object.keys(updates),
+          });
 
-        const user = await this.repo("user").findById(userId);
-        if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+          const user = await this.repo("user").findById(userId);
+          if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 
-        // Validate updates based on role
-        const updateSchema = this._getUpdateSchemaForRole(user.role);
-        const cleanUpdates = this.validate(updates, updateSchema);
+          // Validate updates based on role
+          const updateSchema = this._getUpdateSchemaForRole(user.role);
+          const cleanUpdates = this.validate(updates, updateSchema);
 
-        let result;
-        if (user.role === "student") {
-          result = await this.repo("student").update({ user: userId }, cleanUpdates, options);
-        } else if (user.role === "company") {
-          result = await this.repo("company").update({ user: userId }, cleanUpdates, options);
-        } else if (user.role === "admin") {
-          result = await this.repo("admin").update({ user: userId }, cleanUpdates, options);
+          let result;
+          if (user.role === "student") {
+            result = await this.repo("student").update(
+              { user: userId },
+              cleanUpdates,
+              options
+            );
+          } else if (user.role === "company") {
+            result = await this.repo("company").update(
+              { user: userId },
+              cleanUpdates,
+              options
+            );
+          } else if (user.role === "admin") {
+            result = await this.repo("admin").update(
+              { user: userId },
+              cleanUpdates,
+              options
+            );
+          }
+
+          if (!result) {
+            throw new Error("Profile update failed");
+          }
+
+          this.log("updateMyProfile.success", { userId });
+          return this.success(result);
+        } catch (error) {
+          return this.error(error, "Failed to update profile");
         }
-
-        if (!result) {
-          throw new Error("Profile update failed");
-        }
-
-        this.log("updateMyProfile.success", { userId });
-        return this.success(result);
-      } catch (error) {
-        return this.error(error, "Failed to update profile");
       }
-    });
+    );
   }
 
   /**
@@ -138,28 +160,35 @@ class UserService extends BaseService {
    * @returns {Promise<Object>}
    */
   async deleteMyAccount(userId) {
-    return this.runInContext({ action: "deleteMyAccount", userId }, async () => {
-      try {
-        this.log("deleteMyAccount.start", { userId });
+    return this.runInContext(
+      { action: "deleteMyAccount", userId },
+      async () => {
+        try {
+          this.log("deleteMyAccount.start", { userId });
 
-        return await this.transaction(async (session) => {
-          // Soft delete user
-          const user = await this.repo("user").delete(userId, { session });
-          if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+          return await this.transaction(async (session) => {
+            // Soft delete user
+            const user = await this.repo("user").delete(userId, { session });
+            if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 
-          // Soft delete profile
-          const profileRepo = this._getProfileRepoByRole(user.role);
-          if (profileRepo) {
-            await profileRepo.delete({ user: userId }, { session });
-          }
+            // Soft delete profile
+            const profileRepo = await this._getProfileRepoByRole(user.role);
 
-          this.log("deleteMyAccount.success", { userId });
-          return this.success({ user, message: "Account deleted successfully" });
-        });
-      } catch (error) {
-        return this.error(error, "Failed to delete account");
+            if (profileRepo) {
+              await profileRepo.deleteByUserId(userId, { session });
+            }
+
+            this.log("deleteMyAccount.success", { userId });
+            return this.success({
+              user,
+              message: "Account deleted successfully",
+            });
+          });
+        } catch (error) {
+          return this.error(error, "Failed to delete account");
+        }
       }
-    });
+    );
   }
 
   // ========================================
@@ -173,13 +202,20 @@ class UserService extends BaseService {
    * @param {Object} [options] - { select, sort, includeDeleted }
    * @returns {Promise<Object>}
    */
-  async listUsers(filters = {}, pagination = { page: 1, limit: 10 }, options = {}) {
+  async listUsers(
+    filters = {},
+    pagination = { page: 1, limit: 10 },
+    options = {}
+  ) {
     return this.runInContext({ action: "listUsers" }, async () => {
       try {
         this.log("listUsers.start", { filters, pagination, options });
 
         // Validate pagination
-        const { page, limit } = this.validate(pagination, UserValidation.searchUsersSchema);
+        const { page, limit } = this.validate(
+          pagination,
+          UserValidation.searchUsersSchema
+        );
 
         // Build filters
         const queryFilters = {
@@ -187,11 +223,16 @@ class UserService extends BaseService {
           ...(options.includeDeleted ? {} : { deleted_at: null }),
         };
 
-        const result = await this.repo("user").findAll(queryFilters, page, limit, {
-          ...options,
-          select: options.select || "email role status is_active created_at",
-          sort: options.sort || { created_at: -1 },
-        });
+        const result = await this.repo("user").findAll(
+          queryFilters,
+          page,
+          limit,
+          {
+            ...options,
+            select: options.select || "email role status is_active created_at",
+            sort: options.sort || { created_at: -1 },
+          }
+        );
 
         this.log("listUsers.success", { total: result.metadata.total });
         return this.success(result);
@@ -219,7 +260,11 @@ class UserService extends BaseService {
 
         if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 
-        const profile = await this._getProfileByRole(user.role, userId, options);
+        const profile = await this._getProfileByRole(
+          user.role,
+          userId,
+          options
+        );
 
         const result = {
           user: user.deserialize({ exclude: ["password_hash"] }),
@@ -246,19 +291,22 @@ class UserService extends BaseService {
       try {
         this.log("approveUser.start", { userId });
 
-        const user = await this.repo("user").updateById(userId, {
+        const user = await this.repo("user").findById(userId);
+
+        if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+
+        if (user.status === "approved") throw Error("User already approved");
+
+        const updatedUser = await this.repo("user").updateById(userId, {
           status: "approved",
           updated_at: Date.now(),
         });
-
-        if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
-        if (user.status === "approved") throw new Error("User already approved");
 
         // TODO: Queue welcome email via Agenda.js
         // await agendaQueue.now('sendWelcomeEmail', { userId });
 
         this.log("approveUser.success", { userId });
-        return this.success(user, { message: "User approved successfully" });
+        return this.success(updatedUser, { message: "User approved successfully" });
       } catch (error) {
         return this.error(error, "Failed to approve user");
       }
@@ -276,20 +324,25 @@ class UserService extends BaseService {
       try {
         this.log("rejectUser.start", { userId, reason });
 
-        const user = await this.repo("user").updateById(userId, {
+        const user = await this.repo("user").findById(userId)
+
+        if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+        if (user.status !== "pending")
+          throw new Error("User must be pending to reject");
+
+
+        const updatedUser = await this.repo("user").updateById(userId, {
           status: "rejected",
           ...(reason && { rejection_reason: reason }),
           updated_at: Date.now(),
         });
 
-        if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
-        if (user.status !== "pending") throw new Error("User must be pending to reject");
-
+        
         // TODO: Queue rejection email
         // await agendaQueue.now('sendRejectionEmail', { userId, reason });
 
         this.log("rejectUser.success", { userId });
-        return this.success(user, { message: "User rejected successfully" });
+        return this.success(updatedUser, { message: "User rejected successfully" });
       } catch (error) {
         return this.error(error, "Failed to reject user");
       }
@@ -303,25 +356,28 @@ class UserService extends BaseService {
    * @returns {Promise<Object>}
    */
   async setUserActiveStatus(userId, isActive) {
-    return this.runInContext({ action: "setUserActiveStatus", userId }, async () => {
-      try {
-        this.log("setUserActiveStatus.start", { userId, isActive });
+    return this.runInContext(
+      { action: "setUserActiveStatus", userId },
+      async () => {
+        try {
+          this.log("setUserActiveStatus.start", { userId, isActive });
 
-        const user = await this.repo("user").updateById(userId, {
-          is_active: isActive,
-          updated_at: Date.now(),
-        });
+          const user = await this.repo("user").updateById(userId, {
+            is_active: isActive,
+            updated_at: Date.now(),
+          });
 
-        if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+          if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 
-        this.log("setUserActiveStatus.success", { userId, isActive });
-        return this.success(user, { 
-          message: isActive ? "User activated" : "User deactivated" 
-        });
-      } catch (error) {
-        return this.error(error, "Failed to update user status");
+          this.log("setUserActiveStatus.success", { userId, isActive });
+          return this.success(user, {
+            message: isActive ? "User activated" : "User deactivated",
+          });
+        } catch (error) {
+          return this.error(error, "Failed to update user status");
+        }
       }
-    });
+    );
   }
 
   /**
@@ -330,28 +386,34 @@ class UserService extends BaseService {
    * @returns {Promise<Object>}
    */
   async forceDeleteUser(userId) {
-    return this.runInContext({ action: "forceDeleteUser", userId }, async () => {
-      try {
-        this.log("forceDeleteUser.start", { userId });
+    return this.runInContext(
+      { action: "forceDeleteUser", userId },
+      async () => {
+        try {
+          this.log("forceDeleteUser.start", { userId });
 
-        return await this.transaction(async (session) => {
-          const user = await this.repo("user").forceDelete(userId, { session });
-          if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+          return await this.transaction(async (session) => {
+            const user = await this.repo("user").hardDelete(userId, {
+              session,
+            });
+            if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 
-          // Delete profile
-          const profileRepo = this._getProfileRepoByRole(user.role);
-          if (profileRepo) {
-            await profileRepo.forceDelete({ user: userId }, { session });
-          }
+            // Delete profile
+            const profileRepo = this._getProfileRepoByRole(user.role);
 
-          // TODO: Delete related applications, etc.
-          this.log("forceDeleteUser.success", { userId });
-          return this.success({ message: "User permanently deleted" });
-        });
-      } catch (error) {
-        return this.error(error, "Failed to delete user permanently");
+            if (profileRepo) {
+              await profileRepo.forceDeleteByUserId(userId, { session });
+            }
+
+            // TODO: Delete related applications, etc.
+            this.log("forceDeleteUser.success", { userId });
+            return this.success({ message: "User permanently deleted" });
+          });
+        } catch (error) {
+          return this.error(error, "Failed to delete user permanently");
+        }
       }
-    });
+    );
   }
 
   /**
@@ -369,9 +431,9 @@ class UserService extends BaseService {
           if (!user) throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 
           // Restore profile
-          const profileRepo = this._getProfileRepoByRole(user.role);
+          const profileRepo = await this._getProfileRepoByRole(user.role);
           if (profileRepo) {
-            await profileRepo.restore({ user: userId }, { session });
+            await profileRepo.restoreByUserId(userId, { session });
           }
 
           this.log("restoreUser.success", { userId });
@@ -398,17 +460,22 @@ class UserService extends BaseService {
         this.log("bulkApproveUsers.start", { count: userIds.length });
 
         return await this.transaction(async (session) => {
-          const updates = userIds.map(id => 
-            this.repo("user").update({ _id: id, status: "pending" }, 
-              { status: "approved", updated_at: Date.now() }, 
-              { session })
+          const updates = userIds.map((id) =>
+            this.repo("user").update(
+              { _id: id, status: "pending" },
+              { status: "approved", updated_at: Date.now() },
+              { session }
+            )
           );
 
           const results = await Promise.all(updates);
           const successCount = results.filter(Boolean).length;
 
           this.log("bulkApproveUsers.success", { successCount });
-          return this.success({ count: successCount, message: `${successCount} users approved` });
+          return this.success({
+            count: successCount,
+            message: `${successCount} users approved`,
+          });
         });
       } catch (error) {
         return this.error(error, "Failed to bulk approve users");
@@ -436,7 +503,12 @@ class UserService extends BaseService {
           deleted_at: null,
         };
 
-        const result = await this.repo("user").findAll(filters, 1, 1000, options);
+        const result = await this.repo("user").findAll(
+          filters,
+          1,
+          1000,
+          options
+        );
         this.log("getEligibleUsers.success", { count: result.data.length });
 
         return this.success(result.data);
@@ -455,12 +527,13 @@ class UserService extends BaseService {
    * @param {string} role
    * @returns {any|null}
    */
-  _getProfileRepoByRole(role) {
+  async _getProfileRepoByRole(role) {
     const repoMap = {
       student: this.repos.student,
       company: this.repos.company,
       admin: this.repos.admin,
     };
+
     return repoMap[role] || null;
   }
 
@@ -473,10 +546,10 @@ class UserService extends BaseService {
    * @private
    */
   async _getProfileByRole(role, userId, options = {}) {
-    const repo = this._getProfileRepoByRole(role);
+    const repo = await this._getProfileRepoByRole(role);
     if (!repo) return null;
 
-    const profile = await repo.getUserById(userId, {
+    const profile = await repo.getByUserId(userId, {
       ...options,
       includeDeleted: options.includeDeleted || false,
     });
@@ -491,7 +564,7 @@ class UserService extends BaseService {
    * @private
    */
   _getUpdateSchemaForRole(role) {
-    return UserValidation.buildUpdateProfileSchema(role)
+    return UserValidation.buildUpdateProfileSchema(role);
   }
 
   /**

@@ -150,20 +150,20 @@ class BaseRepository {
 
   /**
    * Soft delete a document by ID
-   * @param {string|mongoose.Types.ObjectId} id - Document ID
+   * @param {Object} query - Query to find the document
    * @param {Object} [options] - Options: lean
    * @returns {Promise<Object|null>} - Soft-deleted document
    * @throws {Error} If delete fails
    */
-  async delete(id, options = {}) {
+  async delete(query, options = {}) {
     try {
-      const query = this.model.findByIdAndUpdate(
-        id,
+      const deleteQuery = this.model.findOneAndUpdate(
+        query,
         { deleted_at: Date.now() },
         { new: true }
       );
-      if (options.includeDeleted) query._includeDeleted = true;
-      return await query.lean(options.lean).exec();
+      if (options.includeDeleted) deleteQuery._includeDeleted = true;
+      return await deleteQuery.lean(options.lean).exec();
     } catch (error) {
       throw new Error(`Soft delete failed: ${error.message}`);
     }
@@ -171,20 +171,20 @@ class BaseRepository {
 
   /**
    * Restore a soft-deleted document by ID
-   * @param {string|mongoose.Types.ObjectId} id - Document ID
+   * @param  {Object} - Query 
    * @param {Object} [options] - Options: lean
    * @returns {Promise<Object|null>} - Restored document
    * @throws {Error} If restore fails
    */
-  async restore(id, options = {}) {
+  async restore(query, options = {}) {
     try {
-      const query = this.model.findByIdAndUpdate(
-        id,
+      const q = this.model.findOneAndUpdate(
+        query,
         { deleted_at: null },
         { new: true }
       );
-      query._includeDeleted = true; // Bypass filter to find deleted doc
-      return await query.lean(options.lean).exec();
+      q._includeDeleted = true; // Bypass filter to find deleted doc
+      return await q.lean(options.lean).exec();
     } catch (error) {
       throw new Error(`Restore failed: ${error.message}`);
     }
@@ -192,16 +192,16 @@ class BaseRepository {
 
   /**
    * Permanently delete a document by ID
-   * @param {string|mongoose.Types.ObjectId} id - Document ID
+   * @param {Object} query - 
    * @param {Object} [options] - Options: includeDeleted
    * @returns {Promise<Object|null>} - Deleted document
    * @throws {Error} If force delete fails
    */
-  async forceDelete(id, options = {}) {
+  async forceDelete(query, options = {}) {
     try {
-      const query = this.model.findByIdAndDelete(id);
-      if (options.includeDeleted) query._includeDeleted = true;
-      return await query.exec();
+      const q = this.model.findOneAndDelete(query);
+      if (options.includeDeleted) q._includeDeleted = true;
+      return await q.exec();
     } catch (error) {
       throw new Error(`Force delete failed: ${error.message}`);
     }

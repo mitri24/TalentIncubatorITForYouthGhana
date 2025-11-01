@@ -39,6 +39,22 @@ class UserRepository extends BaseRepository {
   }
 
   /**
+   * Update a user by id
+   * @param {string} id - The user's ID
+   * @param {Object} data - Fields to update
+   * @param {Object} [options] - Options like { lean: true, includeDeleted: true }
+   * @returns {Promise<Object|null>} - The updated user document or null if not found
+   * @throws {Error} If update fails  
+   */
+  async updateById(id, data, options = {}) {
+    try {
+      return await this.update({ _id: id }, data, options);
+    } catch (error) {
+      throw new Error(`Update user failed: ${error.message}`);
+    }
+  }
+
+  /**
    * Find a user by id
    * @param {string} id - The user's ID
    * @param {Object} [options] - Options like { lean: true, select: 'email role' }
@@ -277,7 +293,7 @@ class UserRepository extends BaseRepository {
    * @returns {Promise<Object|null>}
    */
   async deleteUser(id) {
-    return this.delete(id);
+    return this.delete({_id:id});
   }
 
   /**
@@ -287,7 +303,7 @@ class UserRepository extends BaseRepository {
    * @returns {Promise<Object|null>}
    */
   async restoreUser(id, options = {}) {
-    return this.restore(id, options);
+    return this.restore({_id: id}, options);
   }
 
   /**
@@ -302,6 +318,17 @@ class UserRepository extends BaseRepository {
       deleted_at: null,
     };
     return (await this.findAll(filters, 1, 1000, options)).data;
+  }
+
+  /**
+   * Hard delete user
+   * @param {string} id - User ID
+   * @returns {Promise<Object|null>}
+   * @param {Object} [options]
+   * @returns {Promise<Object|null>}
+   */
+  async hardDelete(id, options = {}) {
+    return this.forceDelete({_id:id}, options);
   }
 
   // === PRIVATE HELPER ===

@@ -66,6 +66,16 @@ class StudentRepository extends BaseRepository {
   }
 
   /**
+   * Force delete student profile
+   * @param {string} userId
+   * @param {Object} [options]
+   * @returns {Promise<Object|null>}
+   */
+  async forceDeleteByUserId(userId, options = {}) {
+    return await this.forceDelete({ user: userId }, options);
+  } 
+
+  /**
    * Get students with job-seeking status
    * @param {Object} [filters]
    * @param {number} [page=1]

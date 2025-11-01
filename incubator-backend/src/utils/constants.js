@@ -122,6 +122,7 @@ export const ERROR_MESSAGES = {
 
   // === AUTH ===
   INVALID_CREDENTIALS: "Incorrect email or password. Please try again.",
+  INVALID_PASSWORD: "Password must contain uppercase, lowercase, number, and special character.",
   EMAIL_NOT_VERIFIED: "Please verify your email before logging in.",
   ACCOUNT_LOCKED: "Too many failed attempts. Your account is locked for 15 minutes.",
   INVALID_TOKEN: "Invalid or expired token. Please request a new one.",
@@ -138,6 +139,7 @@ export const ERROR_MESSAGES = {
   PROFILE_INCOMPLETE: "Your profile is incomplete. Please fill in all required fields.",
   ACCOUNT_PENDING: "Your account is pending approval. We'll notify you soon!",
   ACCOUNT_REJECTED: "Your account was not approved. Contact support for details.",
+  SKILLS_LIMIT_EXCEEDED: "You can select up to 10 skills only. Please adjust your selection.",
 
   // === PASSWORD ===
   WEAK_PASSWORD: "Password is too weak. Use at least 8 characters with uppercase, lowercase, number, and symbol.",
@@ -160,6 +162,8 @@ export const ERROR_MESSAGES = {
   // === COMPANY ===
   COMPANY_NOT_FOUND: "Company profile not found.",
   COMPANY_NAME_EXISTS: "A company with this name already exists.",
+  COMPANY_NAME_REQUIRED: "Company name is required.",
+  INDUSTRY_REQUIRED: "Please select an industry for your company.",
 
   // === ADMIN ===
   ADMIN_ONLY: "This action is restricted to administrators only.",
@@ -169,6 +173,8 @@ export const ERROR_MESSAGES = {
   INVALID_OBJECT_ID: "Invalid ID format. Please check and try again.",
   INVALID_DATE: "Invalid date format. Use YYYY-MM-DD.",
   INVALID_URL: "Please enter a valid URL (e.g., https://example.com).",
+  INVALID_PAGE: "Invalid page number. Must be a positive integer.",
+  INVALID_LIMIT: `Invalid limit. Must be between 1 and ${DEFAULT_PAGINATION.MAX_LIMIT}.`,
 
   // === NETWORK / EXTERNAL ===
   EXTERNAL_API_FAILED: "Failed to connect to external service. Please try again later.",
@@ -178,6 +184,18 @@ export const ERROR_MESSAGES = {
   TOO_MANY_REQUESTS: "Too many requests. Please slow down and try again later.",
 };
 
+// ========================================
+// PROFILE STATUSES
+// ========================================
+export const PROFILE_STATUSES = {
+  UNDER_REVIEW: "review",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+  JOB_SEEKING: "job_seeking",
+  NOT_JOB_SEEKING: "not_job_seeking",
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+};
 // ========================================
 // SUCCESS MESSAGES
 // ========================================

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 /**
- * Cache Manager (FIXED)
+ * Cache Manager
  * Unified Redis + in-memory cache for tokens, rate limiting, sessions
  * Features:
  * - Robust Redis connection with retries and fallbacks

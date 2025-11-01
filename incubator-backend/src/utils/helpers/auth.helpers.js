@@ -8,8 +8,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { JWT_CONFIG } from "../../config/jwt.config";
 import { SALT_ROUNDS, JWT_EXPIRATION } from "../../utils/constants";
-import { cache } from "../../config/cache"; // Redis client or in-memory store
-
+import { cache } from "../../utils/cache/cache.util";
 const jwtLibrary = jwt;
 
 export class AuthHelpers {
