@@ -33,12 +33,13 @@ package "Student Domain" {
   entity "student_profiles" as students {
     PRIMARY_KEY(_id) : ObjectId
     --
-    FOREIGN_KEY(user_id) : ObjectId
+    FOREIGN_KEY(user) : ObjectId
     first_name : String
     last_name : String
     bio : String
-    github_url : String
-    portfolio_url : String
+    social: Array
+    - name : String
+    - url : String
     cv_url : String
     skills : [String]
     --
@@ -73,11 +74,14 @@ package "Company Domain" {
   entity "company_profiles" as companies {
     PRIMARY_KEY(_id) : ObjectId
     --
-    FOREIGN_KEY(user_id) : ObjectId
+    FOREIGN_KEY(user) : ObjectId
     name : String
     description : String
     industry : String
     website : String
+    social_links: Array
+    - name : String
+    - url : String
     --
     created_at : Date
     updated_at : Date
