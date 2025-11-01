@@ -220,7 +220,6 @@ class DatabaseManager {
    * Reset connection (for testing)
    */
   async reset() {
-    // eslint-disable-next-line no-undef
     if (process.env.NODE_ENV !== "test") {
       throw new Error("Database reset only allowed in test environment");
     }

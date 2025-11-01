@@ -231,7 +231,7 @@ class BaseRepository {
   /**
    * Perform aggregation
    * @param {Array} pipeline - Aggregation pipeline
-   * @param {Object} [options] - Options: lean, allowDiskUse
+   * @param {Object} [options] - Options: allowDiskUse
    * @returns {Promise<Array>} - Aggregation result
    * @throws {Error} If aggregation fails
    */
@@ -239,7 +239,7 @@ class BaseRepository {
     try {
       const agg = this.model.aggregate(pipeline);
       if (options.allowDiskUse) agg.allowDiskUse(true);
-      return await agg.lean(options.lean).exec();
+      return await agg.exec();
     } catch (error) {
       throw new Error(`Aggregation failed: ${error.message}`);
     }

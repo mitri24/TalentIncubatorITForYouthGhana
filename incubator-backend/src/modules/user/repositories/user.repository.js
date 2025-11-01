@@ -4,7 +4,7 @@
  * It extends BaseRepository and adds user-specific business logic
  */
 
-import { BaseRepository } from "../shared/shared.repository";
+import { BaseRepository } from "../../shared/base.repository";
 import User from "../model/user.model";
 import { ERROR_MESSAGES } from "../../../utils/constants";
 
@@ -98,7 +98,7 @@ class UserRepository extends BaseRepository {
    */
   async searchUsers(searchTerm, page = 1, limit = 10, options = {}) {
     try {
-      const { select, sort = { created_at: -1 }, lean = true } = options;
+      const { select, sort = { created_at: -1 } } = options;
 
       const pipeline = [
         // Join profiles
@@ -219,7 +219,6 @@ class UserRepository extends BaseRepository {
                   bio: "$profile.bio",
                   cv_url: "$profile.cv_url",
                   website: "$profile.website",
-                  // Add more as needed
                 },
                 null,
               ],
@@ -247,8 +246,8 @@ class UserRepository extends BaseRepository {
           $project: {
             data: 1,
             metadata: {
-              page: Number(page),
-              limit: Number(limit),
+              page: { $literal: page },
+              limit: { $literal: limit },
               total: { $ifNull: [{ $arrayElemAt: ["$metadata.total", 0] }, 0] },
               pages: {
                 $ceil: {
@@ -263,10 +262,10 @@ class UserRepository extends BaseRepository {
         },
       ];
 
-      const result = await this.aggregate(pipeline, { lean, allowDiskUse: true });
+      const result = await this.aggregate(pipeline, { allowDiskUse: true });
       const { data = [], metadata = {} } = result[0] || {};
 
-      return { data, metadata };
+      return { data, metadata: metadata[0] || { page: Number(page), limit: Number(limit), total: 0, pages: 0 } };
     } catch (error) {
       throw new Error(`User search failed: ${error.message}`);
     }

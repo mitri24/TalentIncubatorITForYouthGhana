@@ -1,6 +1,6 @@
 /**
  * Base Service Class
- * 
+ *
  * Provides:
  * - Repository injection (no global imports)
  * - Centralized validation
@@ -26,7 +26,9 @@ class BaseService {
    */
   constructor(repositories = {}, options = {}) {
     if (new.target === BaseService) {
-      throw new Error("BaseService is abstract and cannot be instantiated directly");
+      throw new Error(
+        "BaseService is abstract and cannot be instantiated directly"
+      );
     }
 
     this.repos = { ...repositories };
@@ -75,7 +77,9 @@ class BaseService {
    */
   validate(data, schema) {
     if (!this.constructor.validation) {
-      throw new Error("Validation class not attached. Use BaseService.setValidation()");
+      throw new Error(
+        "Validation class not attached. Use BaseService.setValidation()"
+      );
     }
     return this.constructor.validation.validate(data, schema);
   }
@@ -164,6 +168,20 @@ class BaseService {
     };
   }
 
+  /**
+   * Normalize success response
+   * @param {any} data - The data to return
+   * @param {Object} [meta] - Optional metadata (pagination, etc.)
+   * @returns {Object}
+   */
+  success(data, meta = {}) {
+    return {
+      success: true,
+      data,
+      ...meta,
+    };
+  }
+
   // ========================================
   // 5. UTILITY: REPOSITORY ACCESS
   // ========================================
@@ -176,7 +194,9 @@ class BaseService {
   repo(name) {
     const repo = this.repos[name];
     if (!repo) {
-      throw new Error(`Repository '${name}' not injected into ${this.constructor.name}`);
+      throw new Error(
+        `Repository '${name}' not injected into ${this.constructor.name}`
+      );
     }
     return repo;
   }

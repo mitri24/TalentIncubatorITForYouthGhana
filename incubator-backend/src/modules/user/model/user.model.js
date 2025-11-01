@@ -47,6 +47,14 @@ class User extends BaseModel {
         type: Date,
         default: null,
       },
+      locked_until: {
+        type: Date,
+        default: null
+      },
+      login_attempts: {
+        type: Number,
+        default: 0
+      }
     };
 
     const options = {

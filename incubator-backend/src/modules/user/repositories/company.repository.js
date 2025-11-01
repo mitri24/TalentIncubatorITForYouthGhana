@@ -2,7 +2,7 @@
  * Company Repository
  * Handles company profile data access
  */
-import { BaseRepository } from "../shared/shared.repository";
+import { BaseRepository } from "../../shared/base.repository";
 import Company from "../model/company.model";
 import { ERROR_MESSAGES } from "../../../utils/constants";
 

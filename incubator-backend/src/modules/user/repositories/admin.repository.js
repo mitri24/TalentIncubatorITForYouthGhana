@@ -2,7 +2,7 @@
  * Admin Repository
  * Handles admin profile data access
  */
-import { BaseRepository } from "../shared/shared.repository";
+import { BaseRepository } from "../../shared/base.repository";
 import Admin from "../model/admin.model";
 import { ERROR_MESSAGES } from "../../../utils/constants";
 

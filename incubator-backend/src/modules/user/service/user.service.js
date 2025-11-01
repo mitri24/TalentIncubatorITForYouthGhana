@@ -60,7 +60,7 @@ class UserService extends BaseService {
         return this.success(result);
       } catch (error) {
         return this.error(error, "Failed to fetch profile");
-      }
+            }
     });
   }
 

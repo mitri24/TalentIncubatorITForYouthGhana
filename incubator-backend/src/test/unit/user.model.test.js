@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * Unit tests for User model
  * Tests schema validation, default values, hooks, and custom methods

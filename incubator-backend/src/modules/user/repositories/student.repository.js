@@ -2,7 +2,7 @@
  * Student Repository
  * Handles student profile data access
  */
-import { BaseRepository } from "../shared/shared.repository";
+import { BaseRepository } from "../../shared/base.repository";
 import Student from "../model/student.model";
 import { ERROR_MESSAGES } from "../../../utils/constants";
 
